@@ -60,7 +60,7 @@ Each member records their contributions here.
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
+| 2025-09-15 | Added starter shell files and initial tilde expansion setup  |
 | YYYY-MM-DD | [Description of task]  |
 | YYYY-MM-DD | [Description of task]  |
 
