@@ -6,7 +6,7 @@ The purpose of this project is to design and develop a comprehensive shell inter
 
 ## Group Members
 - Kirra Orndorff: kno22a@fsu.edu
-- **[Member]**: [School Email]
+- Ludginie Dorval: lld22@fsu.edu
 - **[Member]**: [School Email]
 
 ## Division of Labor
@@ -56,7 +56,7 @@ Each member records their contributions here.
 | YYYY-MM-DD | [Description of task]  |
 | YYYY-MM-DD | [Description of task]  |
 
-### [Member 2]
+### Ludginie Dorval
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
