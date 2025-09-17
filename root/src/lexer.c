@@ -2,11 +2,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+int gethostname(char *name, size_t length);
+
+void printPrompt()
+{
+        char *user = getenv("USER");
+        char hostname[256];
+        char cwd[4096];
+
+        gethostname(hostname, sizeof(hostname));
+        getcwd(cwd, sizeof(cwd));
+
+        printf("%s@%s:%s> ", user, hostname, cwd);
+}
 
 int main()
 {
 	while (1) {
-		printf("> ");
+		printPrompt();
 
 		/* input contains the whole command
 		 * tokens contains substrings from input split by spaces
