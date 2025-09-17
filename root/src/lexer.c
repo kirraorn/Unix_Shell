@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
+/* part one: print prompt*/
 int gethostname(char *name, size_t length); // use this to get the host name 
 
 void printPrompt() //prints prompt out
@@ -17,6 +18,7 @@ void printPrompt() //prints prompt out
 
         printf("%s@%s:%s> ", user, hostname, cwd); //print out prompt with unique name
 }
+/* end of part one: print prompt */
 
 int main()
 {
