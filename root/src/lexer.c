@@ -19,7 +19,35 @@ void printPrompt() //prints prompt out
         printf("%s@%s:%s> ", user, hostname, cwd); //print out prompt with unique name
 }
 /* end of part one: print prompt */
+/* part 4: $PATH SEARCH */
 
+char *findPath(char *command)
+{
+
+        if (strchr(command, '/')) // if theres already a path then just return
+        { return strdup(command); }
+
+        char *path = getenv("PATH"); // gives me the full path
+        char *path_copy = strdup(path); // so strtok doesn't mess it up
+        char *folder = strtok(path_copy, ":");
+        static char full_path[4096]; //save full path (static so it survives past function)
+
+        while (folder != NULL) // go through each folder that was made from strtok
+        {
+                snprintf(full_path, sizeof(full_path), "%s/%s", folder, command); //print path  
+
+                if (access(full_path, X_OK)  == 0) // if executable is there then return and free poin>
+                {
+                        free(path_copy);
+                        return strdup(full_path);
+                }
+                folder = strtok(NULL, ":"); // now folder can go to next folder and repeat
+        }
+        free(path_copy); // free memory and if not found then return null
+        return NULL;
+/* end of part 4: PATH SEARCH */
+	
+}
 int main()
 {
 	while (1) {
@@ -33,6 +61,20 @@ int main()
 		printf("whole input: %s\n", input);
 
 		tokenlist *tokens = get_tokens(input);
+		if (tokens->size > 0) // if user entered something
+        {
+
+        	char *command_path = findPath(tokens->items[0]); // run function to get path
+			if (command_path) // if exists, print then free the pointer
+            {
+                    printf ("found: %s\n", command_path);
+                    free(command_path);
+            }
+            else // if not, prein error
+                { printf("%s: command not found\n", tokens->items[0]); }
+        }
+
+
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
