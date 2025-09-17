@@ -82,7 +82,7 @@ Each member records their contributions here.
 |------------|------------------------|
 | 2025-09-13 | Began development of shell prompt  |
 | 2025-09-15 | allowed user input for prompt/exit strategies |
-| YYYY-MM-DD | [Description of task]  |
+| 2025-09-17 | updated the lexer.c file to show prompt  |
 
 ### Ludginie Dorval
 
@@ -107,7 +107,7 @@ Document in-person meetings, their purpose, and what was discussed.
 
 | Date       | Attendees            | Topics Discussed | Outcomes / Decisions |
 |------------|----------------------|------------------|-----------------------|
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
+| 2025-09-17 | Kirra, Kate, Ludginie            | How to combine our parts to fit together  | use lexer.c file as the main project file |
 | YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
 
 
