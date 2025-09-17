@@ -28,7 +28,13 @@ The purpose of this project is to design and develop a comprehensive shell inter
 - **Assigned to**: Kirra Orndorff
 
 ### Part 5: External Command Execution
-- **Responsibilities**:
+- **Responsibilities**: Once you have obtained the path to the program you intend to execute, either because the command included a slash or through the $PATH search, the next step is to execute the external command. However, executing an external command requires more than just a single line of code using the execv() function.
+
+To accomplish this, a two-step process is involved. First, you need to fork() to create a child process. The child process will be responsible for executing the desired command using the execv() function. This separation between the parent and child processes ensures that the execution of the command does not interfere with the operation of the shell itself.
+
+It's important to note that you must handle commands with arguments correctly. This means that commands such as "ls -al" with multiple arguments should be properly processed and executed in the child process.
+
+By following this approach of forking and executing the command within the child process, you can ensure the proper execution of external commands, including those with arguments, within your shell. This separation of processes allows for efficient and accurate command execution while maintaining the stability and functionality of the shell as a whole.
 - **Assigned to** Kate Payen
   
 ### Part 6: I/O Redirection
