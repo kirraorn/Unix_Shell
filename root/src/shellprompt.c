@@ -1,26 +1,33 @@
-#define _GNU_SOURCE  // Fix the syntax error here
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <limits.h>
+#include <limits.h> //sets limits for the host and path arrays
 #include <string.h>
 
-#ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX 64
-#endif
+int main() {
 
-#ifndef MAX_INPUT
-#define MAX_INPUT 1024
-#endif
+char hostname[HOST_NAME_MAX]; //make arrays for the host and path names
+char cwd[PATH_MAX];
+char input[MAX_INPUT];
 
-// Convert main to a function that prints the prompt
-void print_prompt() {
-    char hostname[HOST_NAME_MAX];
-    char cwd[PATH_MAX];
-    
-    char *user = getenv("USER");
-    getcwd(cwd, sizeof(cwd));
-    gethostname(hostname, sizeof(hostname));
-    printf("%s@%s:%s> ", user, hostname, cwd);
-    fflush(stdout); // Make sure prompt appears immediately
+while (1) {
+  char *user = getenv("USER"); //get username, cwd, and host name
+  getcwd(cwd, sizeof(cwd));
+  gethostname(hostname, sizeof(hostname));
+
+  printf("%s@%s:%s> ", user, hostname, cwd); //print them out with formatting
+
+  if (fgets(input, sizeof(input), stdin) == NULL) // get user input/ if using control D then just go to new line and exit
+  {
+      printf("\n");
+      break;
+  }
+
+  input[strcspn(input, "\n")] = 0; // get rid of newline for future parsing
+
+  if (strcmp(input, "exit") == 0) // if user actually types exit, then exit
+  { break; }
+}
+  return 0;
+
 }
