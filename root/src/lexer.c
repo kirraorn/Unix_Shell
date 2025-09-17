@@ -37,6 +37,25 @@ int main()
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
 
+		 //LD adding
+			// 1. Expand tilde in tokens
+        expand_tilde_in_tokens(tokens->items, tokens->size);
+        
+        // 2. Parse redirection
+        char *input_filename, *output_filename;
+        bool has_input_flag, has_output_flag;
+        parse_redirection(tokens->items, tokens->size, &input_filename, &output_filename, 
+                         &has_input_flag, &has_output_flag);
+        
+        // 3. Remove redirection tokens
+        int new_size = remove_redirection_tokens(tokens->items, tokens->size);
+        
+        // 4. Execute the command
+        if (new_size > 0) {
+            execute_command(tokens->items, input_filename, output_filename, 
+                           has_input_flag, has_output_flag);
+        }
+		//end of adding
 		free(input);
 		free_tokens(tokens);
 	}
