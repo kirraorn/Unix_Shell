@@ -4,18 +4,18 @@
 #include <string.h>
 #include <unistd.h>
 
-int gethostname(char *name, size_t length);
+int gethostname(char *name, size_t length); // use this to get the host name 
 
-void printPrompt()
+void printPrompt() //prints prompt out
 {
-        char *user = getenv("USER");
+        char *user = getenv("USER"); // create user, hostname and cwd arrays
         char hostname[256];
         char cwd[4096];
 
-        gethostname(hostname, sizeof(hostname));
+        gethostname(hostname, sizeof(hostname)); // get the hostname and the cwd
         getcwd(cwd, sizeof(cwd));
 
-        printf("%s@%s:%s> ", user, hostname, cwd);
+        printf("%s@%s:%s> ", user, hostname, cwd); //print out prompt with unique name
 }
 
 int main()
