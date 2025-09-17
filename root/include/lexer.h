@@ -2,6 +2,11 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/wait.h>
 
 typedef struct {
     char ** items;
