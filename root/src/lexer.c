@@ -384,3 +384,49 @@ int execute_command(char *tokens[], const char *input_filename, const char *outp
     }
 }
 /*end of io redirection*/
+
+/* part 7: piping */
+
+int piping(char  **commands[], int num_commands)
+{
+        int pipefds[4]; // make enough for 2  pipes with ends
+        pid_t pids[3]; // store pids of the processes
+
+        if (num_commands > 1 && pipe(pipefds) == -1) //if not one pipe, fail
+        { printf("pipe not able to run\n"); return -1;}
+
+        if (num_commands > 2  && pipe(pipefds + 2) == -1) // if not two pipes, fail
+        { printf("pipe unable to run\n"); return -1; }
+
+        for (int i = 0; i < num_commands; i++) //for each command...
+        {
+                if ((pids[i] = fork()) == 0) // if the pid matches the fork
+                {
+                        if (i == 0) // if its the firs command, redirect stout to end of pipe1
+                        { dup2(pipefds[1], STDOUT_FILENO); }
+                        else if (i == num_commands - 1)
+                        { dup2(pipefds[2*(i-1)], STDIN_FILENO); } // if last command, get read end of last pipe and add 
+                        else // if three commands, put the read end of the previous pipe to the write of the next
+                        {
+                                dup2(pipefds[2*(i-1)], STDIN_FILENO);
+                                dup2(pipefds[2*i+1], STDOUT_FILENO);
+                        }
+
+                        for (int j = 0; j < 2*(num_commands - 1); j++) // close the child pipes to make sure its not blocked
+                                close(pipefds[j]);
+
+                        execvp(commands[i][0], commands[i]); // now replace all child processes in comand, if fail then exit
+                        exit(1);
+                }
+        }
+
+        for (int i = 0; i < 2*(num_commands -1); i++) // again, close the child pipes left
+                close(pipefds[i]);
+
+        for (int i = 0; i < num_commands; i ++) // make sure all parent processes wait to finish until children are done
+                waitpid(pids[i], NULL, 0);
+
+return 0;
+
+}
+/* end of piping */
