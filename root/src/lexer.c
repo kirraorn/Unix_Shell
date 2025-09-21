@@ -46,8 +46,10 @@ char *findPath(char *command)
         free(path_copy); // free memory and if not found then return null
         return NULL;
 /* end of part 4: PATH SEARCH */
-	
-}
+
+/* part 7: piping */
+int piping(char **commands[], int num_commands);
+
 int main()
 {
 	while (1) {
@@ -63,18 +65,51 @@ int main()
 		tokenlist *tokens = get_tokens(input);
 		if (tokens->size > 0) // if user entered something
         {
-
-        	char *command_path = findPath(tokens->items[0]); // run function to get path
-			if (command_path) // if exists, print then free the pointer
+			//check if there is a pipe
+            int num_commands = 1;
+            for (int i = 0; i <tokens->size; i++)
             {
-                    printf ("found: %s\n", command_path);
-                    free(command_path);
+                if (strcmp(tokens->items[i], "|") == 0)
+                    { num_commands++; }
             }
-            else // if not, prein error
-                { printf("%s: command not found\n", tokens->items[0]); }
-        }
 
+            if (num_commands > 1)
+            {
+                char **commands[3]; //hold up to three commands
+                int token_index = 0;
 
+                for (int i= 0; i < num_commands; i++)
+                {
+                    commands[i] = malloc((tokens->size + 1) * sizeof(char *));
+                    int arg_index = 0;
+
+                    while (token_index < tokens->size && strcmp(tokens->items[toke>
+                    {
+                        commands[i][arg_index++] = tokens->items[token_index];
+                        token_index++;
+                     }
+                        commands[i][arg_index] = NULL; // terminate argv
+                        token_index++; // skip "|"
+                   }
+
+                    piping(commands, num_commands);
+
+                    for (int i = 0; i < num_commands; i++)
+                        { free(commands[i]); }
+
+                }
+
+                else // if not a pipe
+                {
+					char *command_path = findPath(tokens->items[0]); // run function to get path
+					if (command_path) // if exists, print then free the pointer
+            		{
+                    	printf ("found: %s\n", command_path);
+                    	free(command_path);
+            		}
+            		else // if not, prein error
+                		{ printf("%s: command not found\n", tokens->items[0]); }
+				}
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
