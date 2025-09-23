@@ -89,6 +89,11 @@ Each member records their contributions here.
 | 2025-09-13 | Began development of shell prompt  |
 | 2025-09-15 | allowed user input for prompt/exit strategies |
 | 2025-09-17 | updated the lexer.c file to show prompt  |
+| 2025-09-18 | began development of $PATH search |
+| 2025-09-19 | completed path search and added to lexer.c |
+| 2025-09-20 | added path search to main and fixed bugs with function |
+| 2025-09-22 | began development of piping function |
+| 2025-09-23 | uploaded piping function + main to lexer file |
 
 ### Ludginie Dorval
 
