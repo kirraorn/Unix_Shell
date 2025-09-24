@@ -110,7 +110,7 @@ int main()
                     	pid_t pid = fork();
                     	if (pid == 0)
                     	{
-                       		execv(cmd_path, tokens->items);
+                       		execv(command_path, tokens->items);
                         	perror("execv failed");
                         	exit(1);
                     	}
@@ -430,7 +430,7 @@ int piping(char  **commands[], int num_commands)
                                 close(pipefds[j]);
 
 						char *full_path = findPath(commands[i][0]);
-                		if (!full_path) { fprintf(stderr, "%s: command not found\n", commands[i][0]); exit(1);>
+                		if (!full_path) { fprintf(stderr, "%s: command not found\n", commands[i][0]); exit(1); }
 
              			execv(full_path, commands[i]);
             			perror("execv failed");
