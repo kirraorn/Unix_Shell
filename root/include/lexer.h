@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 typedef struct {
     char ** items;
@@ -22,6 +23,7 @@ void free_tokens(tokenlist *tokens);
 int gethostname(char *name, size_t length);
 char* expand_tilde(const char* token);
 void expand_tilde_in_tokens(char** tokens, int num_tokens);
+int piping(char **commands[], int num_commands);
 void parse_redirection(char *tokens[], int num_tokens, char **input_filename, char **output_filename, bool *has_input_flag, bool *has_output_flag);
 int remove_redirection_tokens(char *tokens[], int num_tokens);
 int setup_redirection(const char *input_filename, const char *output_filename, bool has_input_flag, bool has_output_flag);
