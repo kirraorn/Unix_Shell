@@ -18,6 +18,22 @@ void printPrompt() //prints prompt out
         printf("%s@%s:%s> ", user, hostname, cwd); //print out prompt with unique name
 }
 /* end of part one: print prompt */
+/*part 2 */
+void replace_env_tokens(tokenlist *tokens) 
+{
+    for (int i = 0; i < tokens->size; i++) \
+	{
+        char *tok = tokens->items[i];
+        if (tok[0] == '$' && tok[1] != '\0') 
+		{
+            const char *val = getenv(tok + 1);
+            free(tokens->items[i]);
+            tokens->items[i] = strdup(val ? val : "");
+        }
+    }
+}
+/* end of part 2 */ 
+
 /* part 4: $PATH SEARCH */
 
 char *findPath(char *command)
