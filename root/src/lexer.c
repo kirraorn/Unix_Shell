@@ -61,7 +61,8 @@ int main()
 		char *input = get_input();
 //printf("whole input: %s\n", input);
 		char *nl = strchr(input, '\n');  // get rid of any newline if there
-        if (nl) *nl = '\0';
+        if (nl) 
+			{ *nl = '\0'; }
 		
 		tokenlist *tokens = get_tokens(input);
 		if (tokens->size > 0) // if user entered something
