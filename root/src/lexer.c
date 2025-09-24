@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 /* part one: print prompt*/
-int gethostname(char *name, size_t length); // use this to get the host name 
 
 void printPrompt() //prints prompt out
 {
@@ -23,6 +22,8 @@ void printPrompt() //prints prompt out
 
 char *findPath(char *command)
 {
+		if (!command) // if not a command then exit
+			return NULL;
 
         if (strchr(command, '/')) // if theres already a path then just return
         { return strdup(command); }
@@ -47,9 +48,6 @@ char *findPath(char *command)
         return NULL;
 /* end of part 4: PATH SEARCH */
 
-/* part 7: piping */
-int piping(char **commands[], int num_commands);
-
 int main()
 {
 	while (1) {
@@ -60,14 +58,16 @@ int main()
 		 */
 
 		char *input = get_input();
-		printf("whole input: %s\n", input);
-
+//printf("whole input: %s\n", input);
+		char *nl = strchr(input, '\n');  // get rid of any newline if there
+        if (nl) *nl = '\0';
+		
 		tokenlist *tokens = get_tokens(input);
 		if (tokens->size > 0) // if user entered something
         {
 			//check if there is a pipe
             int num_commands = 1;
-            for (int i = 0; i <tokens->size; i++)
+            for (int i = 0; i < tokens->size; i++)
             {
                 if (strcmp(tokens->items[i], "|") == 0)
                     { num_commands++; }
@@ -83,19 +83,21 @@ int main()
                     commands[i] = malloc((tokens->size + 1) * sizeof(char *));
                     int arg_index = 0;
 
-                    while (token_index < tokens->size && strcmp(tokens->items[toke>
-                    {
+                    while (token_index < tokens->size && strcmp(tokens->items[token_index], "|") != 0)
+					{
                         commands[i][arg_index++] = tokens->items[token_index];
                         token_index++;
-                     }
+                    }
                         commands[i][arg_index] = NULL; // terminate argv
-                        token_index++; // skip "|"
-                   }
 
-                    piping(commands, num_commands);
+						if (token_index < tokens->size && strcmp(tokens->items[token_index], "|") == 0)
+                        	token_index++; // skip "|"
+                }
 
-                    for (int i = 0; i < num_commands; i++)
-                        { free(commands[i]); }
+                piping(commands, num_commands);
+
+            	for (int i = 0; i < num_commands; i++)
+                    { free(commands[i]); }
 
                 }
 
@@ -104,14 +106,25 @@ int main()
 					char *command_path = findPath(tokens->items[0]); // run function to get path
 					if (command_path) // if exists, print then free the pointer
             		{
-                    	printf ("found: %s\n", command_path);
+                    	pid_t pid = fork();
+                    	if (pid == 0)
+                    	{
+                       		execv(cmd_path, tokens->items);
+                        	perror("execv failed");
+                        	exit(1);
+                    	}
+                    	else if (pid > 0)
+                    	{
+                        	int status;
+                        	waitpid(pid, &status, 0);
+                    	}
                     	free(command_path);
             		}
             		else // if not, prein error
                 		{ printf("%s: command not found\n", tokens->items[0]); }
 				}
-		for (int i = 0; i < tokens->size; i++) {
-			printf("token %d: (%s)\n", i, tokens->items[i]);
+		//for (int i = 0; i < tokens->size; i++) {
+			//printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
 
 		 //LD adding
@@ -415,8 +428,13 @@ int piping(char  **commands[], int num_commands)
                         for (int j = 0; j < 2*(num_commands - 1); j++) // close the child pipes to make sure its not blocked
                                 close(pipefds[j]);
 
-                        execvp(commands[i][0], commands[i]); // now replace all child processes in comand, if fail then exit
-                        exit(1);
+						char *full_path = findPath(commands[i][0]);
+                		if (!full_path) { fprintf(stderr, "%s: command not found\n", commands[i][0]); exit(1);>
+
+             			execv(full_path, commands[i]);
+            			perror("execv failed");
+                		free(full_path);
+						exit(1);
                 }
         }
 
