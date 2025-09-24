@@ -166,7 +166,7 @@ char *get_input(void) {
 			addby = newln - line;
 		else
 			addby = 5 - 1;
-		buffer = (char *)realloc(buffer, bufsize + addby);
+		buffer = (char *)realloc(buffer, bufsize + addby + 1);
 		memcpy(&buffer[bufsize], line, addby);
 		bufsize += addby;
 		if (newln != NULL)
