@@ -19,6 +19,7 @@ tokenlist * get_tokens(char *input);
 tokenlist * new_tokenlist(void);
 void add_token(tokenlist *tokens, char *item);
 void free_tokens(tokenlist *tokens);
+int gethostname(char *name, size_t length);
 char* expand_tilde(const char* token);
 void expand_tilde_in_tokens(char** tokens, int num_tokens);
 void parse_redirection(char *tokens[], int num_tokens, char **input_filename, char **output_filename, bool *has_input_flag, bool *has_output_flag);
