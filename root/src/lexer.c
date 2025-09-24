@@ -46,6 +46,7 @@ char *findPath(char *command)
         }
         free(path_copy); // free memory and if not found then return null
         return NULL;
+}
 /* end of part 4: PATH SEARCH */
 
 int main()
