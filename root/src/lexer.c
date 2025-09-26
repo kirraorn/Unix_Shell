@@ -22,7 +22,7 @@ void printPrompt() //prints prompt out
 /*part 2 */
 void replace_env_tokens(tokenlist *tokens) 
 {
-    for (int i = 0; i < tokens->size; i++) \
+    for (int i = 0; i < tokens->size; i++) 
 	{
         char *tok = tokens->items[i];
         if (tok[0] == '$' && tok[1] != '\0') 
