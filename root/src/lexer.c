@@ -118,32 +118,30 @@ int main()
                     { free(commands[i]); }
 
                 }
-
-                else // if not a pipe
-                {
-					char *command_path = findPath(tokens->items[0]); // run function to get path
-					if (command_path) // if exists, print then free the pointer
-            		{
-                    	pid_t pid = fork();
-                    	if (pid == 0)
-                    	{
-							tokens->items = realloc(tokens->items, (tokens->size + 1) * sizeof(char *));
-							tokens->items[tokens->size] = NULL;   // make sure it's null-terminated
-
-                       		execv(command_path, tokens->items);
-                        	perror("execv failed");
-                        	exit(1);
-                    	}
-                    	else if (pid > 0)
-                    	{
-                        	int status;
-                        	waitpid(pid, &status, 0);
-                    	}
-                    	free(command_path);
-            		}
-            		else // if not, prein error
-                		{ printf("%s: command not found\n", tokens->items[0]); }
+/* part 5 */
+               else // if not a pipe
+				{
+				    char *command_path = findPath(tokens->items[0]); // current code
+				    if (command_path) {
+				        pid_t pid = fork();
+				        if (pid == 0) {
+				            tokens->items = realloc(tokens->items, (tokens->size + 1) * sizeof(char *));
+				            tokens->items[tokens->size] = NULL;
+				            execv(command_path, tokens->items);
+				            perror("execv failed");
+				            exit(1);
+				        }
+				        else if (pid > 0) {
+				            int status;
+				            waitpid(pid, &status, 0);
+				        }
+				        free(command_path);
+				    }
+				    else {
+				        printf("%s: command not found\n", tokens->items[0]);
+					}
 				}
+/*end of part 5 */
 		//for (int i = 0; i < tokens->size; i++) {
 			//printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
