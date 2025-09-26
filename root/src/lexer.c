@@ -139,50 +139,25 @@ int main()
 /* part 5 */
                else // if not a pipe
 				{
-				    char *command_path = findPath(tokens->items[0]); // current code
-				    if (command_path) {
-				        pid_t pid = fork();
-				        if (pid == 0) {
-				            execv(command_path, tokens->items);
-				            perror("execv failed");
-				            exit(1);
-				        }
-				        else if (pid > 0) {
-				            int status;
-				            waitpid(pid, &status, 0);
-				        }
-				        free(command_path);
-						free(input);
-						free_tokens(tokens);
-						continue;
-				    }
-				    else {
-				        printf("%s: command not found\n", tokens->items[0]);
-					}
-				}
-/*end of part 5 */
-		//for (int i = 0; i < tokens->size; i++) {
-			//printf("token %d: (%s)\n", i, tokens->items[i]);
-		}
+				 // Single command path
+                expand_tilde_in_tokens(tokens->items, tokens->size);
 
-		 //LD adding
-			// 1. Expand tilde in tokens
-        expand_tilde_in_tokens(tokens->items, tokens->size);
-        
-        // 2. Parse redirection
-        char *input_filename, *output_filename;
-        bool has_input_flag, has_output_flag;
-        parse_redirection(tokens->items, tokens->size, &input_filename, &output_filename, 
-                         &has_input_flag, &has_output_flag);
-        
-        // 3. Remove redirection tokens
-        int new_size = remove_redirection_tokens(tokens->items, tokens->size);
-        
-        // 4. Execute the command
-        if (new_size > 0) {
-            execute_command(tokens->items, input_filename, output_filename, 
-                           has_input_flag, has_output_flag);
-        }
+                // Parse redirection
+                char *input_filename, *output_filename;
+                bool has_input_flag, has_output_flag;
+                parse_redirection(tokens->items, tokens->size,
+                                  &input_filename, &output_filename,
+                                  &has_input_flag, &has_output_flag);
+
+                // Remove redirection tokens
+                int new_size = remove_redirection_tokens(tokens->items, tokens->size);
+
+                // Execute command
+                if (new_size > 0)
+                    execute_command(tokens->items, input_filename, output_filename,
+                                    has_input_flag, has_output_flag);
+				}
+		}
 		//end of adding
 		free(input);
 		free_tokens(tokens);
