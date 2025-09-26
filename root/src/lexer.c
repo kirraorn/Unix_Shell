@@ -16,6 +16,7 @@ void printPrompt() //prints prompt out
         getcwd(cwd, sizeof(cwd));
 
         printf("%s@%s:%s> ", user, hostname, cwd); //print out prompt with unique name
+		fflush(stdout);
 }
 /* end of part one: print prompt */
 /*part 2 */
