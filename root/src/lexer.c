@@ -127,6 +127,9 @@ int main()
                     	pid_t pid = fork();
                     	if (pid == 0)
                     	{
+							tokens->items = realloc(tokens->items, (tokens->size + 1) * sizeof(char *));
+							tokens->items[tokens->size] = NULL;   // make sure it's null-terminated
+
                        		execv(command_path, tokens->items);
                         	perror("execv failed");
                         	exit(1);
