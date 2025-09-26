@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 /* part one: print prompt*/
-
 void printPrompt() //prints prompt out
 {
         char *user = getenv("USER"); // create user, hostname and cwd arrays
@@ -19,6 +18,7 @@ void printPrompt() //prints prompt out
 		fflush(stdout);
 }
 /* end of part one: print prompt */
+
 /*part 2 */
 void replace_env_tokens(tokenlist *tokens) 
 {
@@ -53,15 +53,22 @@ char *findPath(char *command)
 			return NULL;
 
         if (strchr(command, '/')) // if theres already a path then just return
-        { return strdup(command); }
+        { 
+			if (access(command, X_OK) == 0)
+			{ return strdup(command); }
+			return NULL;
+		}
 
         char *path = getenv("PATH"); // gives me the full path
+		if (!path) 
+		{ return NULL; }
+	
         char *path_copy = strdup(path); // so strtok doesn't mess it up
         char *folder = strtok(path_copy, ":");
-        static char full_path[4096]; //save full path (static so it survives past function)
 
         while (folder != NULL) // go through each folder that was made from strtok
-        {
+        {	
+				char full_path[4096];
                 snprintf(full_path, sizeof(full_path), "%s/%s", folder, command); //print path  
 
                 if (access(full_path, X_OK)  == 0) // if executable is there then return and free poin>
