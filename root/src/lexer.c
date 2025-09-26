@@ -143,8 +143,6 @@ int main()
 				    if (command_path) {
 				        pid_t pid = fork();
 				        if (pid == 0) {
-				            tokens->items = realloc(tokens->items, (tokens->size + 1) * sizeof(char *));
-				            tokens->items[tokens->size] = NULL;
 				            execv(command_path, tokens->items);
 				            perror("execv failed");
 				            exit(1);
@@ -154,6 +152,9 @@ int main()
 				            waitpid(pid, &status, 0);
 				        }
 				        free(command_path);
+						free(input);
+						free_tokens(tokens);
+						continue;
 				    }
 				    else {
 				        printf("%s: command not found\n", tokens->items[0]);
@@ -413,10 +414,15 @@ int execute_command(char *tokens[], const char *input_filename, const char *outp
         if (setup_redirection(input_filename, output_filename, has_input_flag, has_output_flag) != 0) {
             exit(1);//from our previous function, if it did not return 0, then quit
         }
-
-        execv(tokens[0], tokens);//replace the child iage with the new command
-
+		char *full_path = findPath(tokens[0]);
+        if (!full_path) {
+            fprintf(stderr, "%s: command not found\n", tokens[0]);
+            exit(1);
+        }
+        execv(full_path, tokens);
+        
         perror("execv failed");//if it fails, print error and quit
+        free(full_path);
         exit(1);
     } else {//the parent process
         int status;
