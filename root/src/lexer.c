@@ -35,8 +35,6 @@ void replace_env_tokens(tokenlist *tokens)
 }
 /* end of part 2 */ 
 
-
-
 /* part 4: $PATH SEARCH */
 
 char *findPath(char *command)
@@ -108,12 +106,7 @@ int main()
 	while (1) {
 		printPrompt();
 
-		/* input contains the whole command
-		 * tokens contains substrings from input split by spaces
-		 */
-
 		char *input = get_input();
-//printf("whole input: %s\n", input);
 		char *nl = strchr(input, '\n');  // get rid of any newline if there
         if (nl) 
 			{ *nl = '\0'; }
@@ -130,7 +123,6 @@ int main()
 			tokens->size--;
 		}
 		//LD end addition
-		
 		if (tokens->size > 0) // if user entered something
         {
 			// part 9: add to history
@@ -206,21 +198,26 @@ int main()
 					 exit(0);
 				 }
 				 else if (strcmp(tokens->items[0], "cd") == 0) {
+					 char *dir = NULL;
 					 if (tokens->size > 2) {
 						 fprintf(stderr, "cd: too many arguments\n");
+						 continue;
 					 }
 					 else if (tokens->size == 1) {
-						 char *home = getenv("HOME");
-						 if (chdir(home) != 0) {
+						 dir = getenv("HOME");
+						 else 
+						 {  dir = expand_tilde(tokens->items[1]); }
+						 if (chdir(dir) != 0) {
 							 perror("cd");
 						 }
-					 }
-					 else {
-						 if (chdir(tokens->items[1]) != 0) {
-							 perror("cd");
-						 }
-					 }
-				 }
+					 	 if (chdir(dir) != 0) 
+						 { perror("cd"); }            
+                        else 
+						 { // update PWD
+        					char cwd[4096];
+        					if (getcwd(cwd, sizeof(cwd)) != NULL) 
+								{ setenv("PWD", cwd, 1); }
+				 		  }
 				 else if (strcmp(tokens->items[0], "jobs") == 0) {
 					 //LD added for testing
 					 if (bg_job_count == 0) {
