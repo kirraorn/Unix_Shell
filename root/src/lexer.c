@@ -35,14 +35,6 @@ void replace_env_tokens(tokenlist *tokens)
 }
 /* end of part 2 */ 
 
-/* part of part 8: background process*/
-bool is_background = false;
-if (tokens->size > 0 && strcmp(tokens->items[tokens->size - 1], "&") == 0) {
-    is_background = true;
-    free(tokens->items[tokens->size - 1]); // free "&"
-    tokens->items[tokens->size - 1] = NULL; // null-terminate
-    tokens->size--;
-}
 
 
 /* part 4: $PATH SEARCH */
