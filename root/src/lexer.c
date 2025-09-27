@@ -467,6 +467,39 @@ return 0;
 }
 /* end of piping */
 /* part 8: background processing */
+/* part 8: background processing */
+int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
+                      bool has_input_flag, bool has_output_flag, int job_number) 
+{
+    pid_t pid = fork();
 
+    if (pid < 0) {
+        perror("Fork failed");
+        return -1;
+    }
 
+    if (pid == 0) { 
+        // Child process
+        if (setup_redirection(input_filename, output_filename, has_input_flag, has_output_flag) != 0) {
+            exit(1);
+        }
+
+        char *full_path = findPath(tokens[0]);
+        if (!full_path) {
+            fprintf(stderr, "%s: command not found\n", tokens[0]);
+            exit(1);
+        }
+
+        execv(full_path, tokens);
+        perror("execv failed");
+        free(full_path);
+        exit(1);
+    } 
+    else {
+        // Parent process: print job info, don't wait
+        printf("[%d] %d\n", job_number, pid);
+        fflush(stdout);
+        return pid; // keep track of this background job
+    }
+}
 /* End of part 8*/
