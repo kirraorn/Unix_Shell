@@ -62,12 +62,12 @@ By following this approach of forking and executing the command within the child
 ## How to Compile & Execute
 
 ### Requirements
-- **Compiler**: e.g., `gcc` for C/C++, `rustc` for Rust.
-- **Dependencies**: List any libraries or frameworks necessary (rust only).
-
+- **Compiler**: e.g., `gcc` for C/
 ### Compilation
-For a C/C++ example:
-```bash
+
+C was used for this project, so just run "make" in the starter directory:
+
+shell/starter
 make
 ```
 This will build the executable in ...
@@ -76,6 +76,10 @@ This will build the executable in ...
 make run
 ```
 This will run the program ...
+
+```bash
+./bin/shell
+```
 
 ## Development Log
 Each member records their contributions here.
