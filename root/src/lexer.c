@@ -19,7 +19,7 @@ void printPrompt() //prints prompt out
 }
 /* end of part one: print prompt */
 
-/*part 2 */
+/*part 2  - env tokens */
 void replace_env_tokens(tokenlist *tokens) 
 {
     for (int i = 0; i < tokens->size; i++) 
@@ -35,305 +35,7 @@ void replace_env_tokens(tokenlist *tokens)
 }
 /* end of part 2 */ 
 
-/* part 4: $PATH SEARCH */
-
-char *findPath(char *command)
-{
-		if (!command) // if not a command then exit
-			return NULL;
-
-        if (strchr(command, '/')) // if theres already a path then just return
-        { 
-			if (access(command, X_OK) == 0)
-			{ return strdup(command); }
-			return NULL;
-		}
-
-        char *path = getenv("PATH"); // gives me the full path
-		if (!path) 
-		{ return NULL; }
-	
-        char *path_copy = strdup(path); // so strtok doesn't mess it up
-        char *folder = strtok(path_copy, ":");
-
-        while (folder != NULL) // go through each folder that was made from strtok
-        {	
-				char full_path[4096];
-                snprintf(full_path, sizeof(full_path), "%s/%s", folder, command); //print path  
-
-                if (access(full_path, X_OK)  == 0) // if executable is there then return and free poin>
-                {
-                        free(path_copy);
-                        return strdup(full_path);
-                }
-                folder = strtok(NULL, ":"); // now folder can go to next folder and repeat
-        }
-        free(path_copy); // free memory and if not found then return null
-        return NULL;
-}
-/* end of part 4: PATH SEARCH */
-
-/* part 9: command history for exit */
-char *command_history[3] = {NULL, NULL, NULL};
-int history_count = 0;
-
-void add_to_history(char *command) {
-    if (command_history[0]) free(command_history[0]);
-    command_history[0] = command_history[1];
-    command_history[1] = command_history[2];
-    command_history[2] = strdup(command);
-    if (history_count < 3) history_count++;
-}
-/* end part 9 history */
-
-//LD added for testing - Part 8 job tracking
-typedef struct {
-    int job_number;
-    pid_t pid;
-    char *command;
-} BackgroundJob;
-
-BackgroundJob bg_jobs[10];
-int bg_job_count = 0;
-//LD end addition
-//LD added for testing - function declaration
-int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
-                      bool has_input_flag, bool has_output_flag, int job_number);
-//LD end addition
-int main()
-{
-	int job_count = 1;  // start background jobs from 1
-	while (1) {
-		printPrompt();
-
-		char *input = get_input();
-		char *nl = strchr(input, '\n');  // get rid of any newline if there
-        if (nl) 
-			{ *nl = '\0'; }
-		
-		tokenlist *tokens = get_tokens(input);
-		replace_env_tokens(tokens); // part 2: expand environment variables
-		
-		//LD added for testing - check for background
-		bool is_background = false;
-		if (tokens->size > 0 && strcmp(tokens->items[tokens->size - 1], "&") == 0) {
-			is_background = true;
-			free(tokens->items[tokens->size - 1]);
-			tokens->items[tokens->size - 1] = NULL;
-			tokens->size--;
-		}
-		//LD end addition
-		if (tokens->size > 0) // if user entered something
-        {
-			// part 9: add to history
-			add_to_history(input);
-			
-			//check if there is a pipe
-            int num_commands = 1;
-            for (int i = 0; i < tokens->size; i++)
-            {
-                if (strcmp(tokens->items[i], "|") == 0)
-                    { num_commands++; }
-            }
-
-            if (num_commands > 1)
-            {
-                char **commands[3]; //hold up to three commands
-                int token_index = 0;
-
-                for (int i= 0; i < num_commands; i++)
-                {
-                    commands[i] = malloc((tokens->size + 1) * sizeof(char *));
-                    int arg_index = 0;
-
-                    while (token_index < tokens->size && strcmp(tokens->items[token_index], "|") != 0)
-					{
-                        commands[i][arg_index++] = tokens->items[token_index];
-                        token_index++;
-                    }
-                        commands[i][arg_index] = NULL; // terminate argv
-
-						if (token_index < tokens->size && strcmp(tokens->items[token_index], "|") == 0)
-                        	token_index++; // skip "|"
-                }
-
-                piping(commands, num_commands);
-
-            	for (int i = 0; i < num_commands; i++)
-                    { free(commands[i]); }
-
-                }
-/* part 5 */
-               else // if not a pipe
-				{
-				 /* PART 9: BUILT-IN COMMANDS */
-				 if (strcmp(tokens->items[0], "exit") == 0) {
-					 // Wait for background jobs
-					 //LD added for testing
-					 for (int i = 0; i < bg_job_count; i++) {
-						 if (bg_jobs[i].pid > 0) {
-							 waitpid(bg_jobs[i].pid, NULL, 0);
-							 free(bg_jobs[i].command);
-						 }
-					 }
-					 //LD end addition
-					 
-					 if (history_count == 0) {
-						 printf("No commands in history.\n");
-					 } else {
-						 printf("Last %d command(s):\n", history_count);
-						 for (int i = 0; i < history_count; i++) {
-							 if (command_history[i]) {
-								 printf("%d: %s\n", i+1, command_history[i]);
-							 }
-						 }
-					 }
-					 
-					 for (int i = 0; i < 3; i++) {
-						 if (command_history[i]) free(command_history[i]);
-					 }
-					 
-					 free(input);
-					 free_tokens(tokens);
-					 exit(0);
-				 }
-				 else if (strcmp(tokens->items[0], "cd") == 0) {
-					 char *dir = NULL;
-					 if (tokens->size > 2) {
-						 fprintf(stderr, "cd: too many arguments\n");
-						 continue;
-					 }
-					 else if (tokens->size == 1) {
-						 dir = getenv("HOME");
-						 else 
-						 {  dir = expand_tilde(tokens->items[1]); }
-						 if (chdir(dir) != 0) {
-							 perror("cd");
-						 }
-					 	 if (chdir(dir) != 0) 
-						 { perror("cd"); }            
-                        else 
-						 { // update PWD
-        					char cwd[4096];
-        					if (getcwd(cwd, sizeof(cwd)) != NULL) 
-								{ setenv("PWD", cwd, 1); }
-				 		  }
-				 else if (strcmp(tokens->items[0], "jobs") == 0) {
-					 //LD added for testing
-					 if (bg_job_count == 0) {
-						 printf("No active background jobs\n");
-					 } else {
-						 for (int i = 0; i < bg_job_count; i++) {
-							 if (bg_jobs[i].pid > 0) {
-								 printf("[%d]+ %d %s\n", bg_jobs[i].job_number, bg_jobs[i].pid, bg_jobs[i].command);
-							 }
-						 }
-					 }
-					 //LD end addition
-				 }
-				 else {
-					 // Single command path
-					 expand_tilde_in_tokens(tokens->items, tokens->size);
-
-					 // Parse redirection
-					 char *input_filename, *output_filename;
-					 bool has_input_flag, has_output_flag;
-					 parse_redirection(tokens->items, tokens->size,
-									   &input_filename, &output_filename,
-									   &has_input_flag, &has_output_flag);
-
-					 // Remove redirection tokens
-					 int new_size = remove_redirection_tokens(tokens->items, tokens->size);
-					 tokens->items[new_size] = NULL; // NULL terminate for execv
-
-					 // Execute command
-					 if (new_size > 0) {
-						 //LD added for testing - background check
-						 if (is_background) {
-							 int pid = run_in_background(tokens->items, input_filename, output_filename, has_input_flag, has_output_flag, job_count);
-							 bg_jobs[bg_job_count].job_number = job_count++;
-							 bg_jobs[bg_job_count].pid = pid;
-							 bg_jobs[bg_job_count].command = strdup(input);
-							 bg_job_count++;
-						 } else {
-							 execute_command(tokens->items, input_filename, output_filename, has_input_flag, has_output_flag);
-						 }
-						 //LD end addition
-					 }
-				 }
-				}
-		}
-		//end of adding
-		free(input);
-		free_tokens(tokens);
-	}
-
-	return 0;
-}
-
-char *get_input(void) {
-	char *buffer = NULL;
-	int bufsize = 0;
-	char line[5];
-	while (fgets(line, 5, stdin) != NULL)
-	{
-		int addby = 0;
-		char *newln = strchr(line, '\n');
-		if (newln != NULL)
-			addby = newln - line;
-		else
-			addby = 5 - 1;
-		buffer = (char *)realloc(buffer, bufsize + addby + 1);
-		memcpy(&buffer[bufsize], line, addby);
-		bufsize += addby;
-		if (newln != NULL)
-			break;
-	}
-	buffer = (char *)realloc(buffer, bufsize + 1);
-	buffer[bufsize] = 0;
-	return buffer;
-}
-
-tokenlist *new_tokenlist(void) {
-	tokenlist *tokens = (tokenlist *)malloc(sizeof(tokenlist));
-	tokens->size = 0;
-	tokens->items = (char **)malloc(sizeof(char *));
-	tokens->items[0] = NULL; /* make NULL terminated */
-	return tokens;
-}
-
-void add_token(tokenlist *tokens, char *item) {
-	int i = tokens->size;
-
-	tokens->items = (char **)realloc(tokens->items, (i + 2) * sizeof(char *));
-	tokens->items[i] = (char *)malloc(strlen(item) + 1);
-	tokens->items[i + 1] = NULL;
-	strcpy(tokens->items[i], item);
-
-	tokens->size += 1;
-}
-
-tokenlist *get_tokens(char *input) {
-	char *buf = (char *)malloc(strlen(input) + 1);
-	strcpy(buf, input);
-	tokenlist *tokens = new_tokenlist();
-	char *tok = strtok(buf, " ");
-	while (tok != NULL)
-	{
-		add_token(tokens, tok);
-		tok = strtok(NULL, " ");
-	}
-	free(buf);
-	return tokens;
-}
-
-void free_tokens(tokenlist *tokens) {
-	for (int i = 0; i < tokens->size; i++)
-		free(tokens->items[i]);
-	free(tokens->items);
-	free(tokens);
-}
-/*tilde expansion*/
+/* part 3 - tilde expansion*/
 char* expand_tilde(const char* token) {
         char* home = getenv("HOME");
         if (home == NULL){
@@ -392,52 +94,48 @@ void expand_tilde_in_tokens(char** tokens, int num_tokens) {
                 }
         }
 }//end of expand_tilde_in tokens
+ /* end of part 3 */
 
-/*io redirection*/
-/*######################################################################################*/
-void parse_redirection(char *tokens[], int num_tokens, char **input_filename, char **output_filename, bool *has_input_flag, bool *has_output_flag) {
-    // Initialize flags and filenames
-    *has_input_flag = false;
-    *has_output_flag = false;
-    *input_filename = NULL;
-    *output_filename = NULL;
+/* part 4: $PATH SEARCH */
 
-    // Iterate over tokens
-    for (int i = 0; i < num_tokens; i++) {
-        //if there is the sign for an input in the token
-        if (strcmp(tokens[i], "<") == 0) {
-            if (i + 1 < num_tokens) {//if there is a token after it
-                *input_filename = tokens[i + 1];//set the input file name to be the following token
-                *has_input_flag = true; //change the flag to true
-            }
-        //else if there is the sign for an output, do the same from input but for output
-        } else if (strcmp(tokens[i], ">") == 0) {
-            if (i + 1 < num_tokens) {
-                *output_filename = tokens[i + 1];
-                *has_output_flag = true;
-            }
+char *findPath(char *command)
+{
+		if (!command) // if not a command then exit
+			return NULL;
+
+        if (strchr(command, '/')) // if theres already a path then just return
+        { 
+			if (access(command, X_OK) == 0)
+			{ return strdup(command); }
+			return NULL;
+		}
+
+        char *path = getenv("PATH"); // gives me the full path
+		if (!path) 
+		{ return NULL; }
+	
+        char *path_copy = strdup(path); // so strtok doesn't mess it up
+        char *folder = strtok(path_copy, ":");
+
+        while (folder != NULL) // go through each folder that was made from strtok
+        {	
+				char full_path[4096];
+                snprintf(full_path, sizeof(full_path), "%s/%s", folder, command); //print path  
+
+                if (access(full_path, X_OK)  == 0) // if executable is there then return and free poin>
+                {
+                        free(path_copy);
+                        return strdup(full_path);
+                }
+                folder = strtok(NULL, ":"); // now folder can go to next folder and repeat
         }
-    }
+        free(path_copy); // free memory and if not found then return null
+        return NULL;
 }
+/* end of part 4: PATH SEARCH */
 
-/*######################################################################################*/
-int remove_redirection_tokens(char *tokens[], int num_tokens) {
-    int write_index = 0;//keeps trac o the position in the list where we put tokens we want to keep
+/* part 5 - command execution */
 
-    for (int read_index = 0; read_index < num_tokens;) {//go through every token in the list
-        //check for redirection symbol
-        if (strcmp(tokens[read_index], "<") == 0 || strcmp(tokens[read_index], ">") == 0) {
-            read_index += 2; //skip the symbol and the file name
-        } else {
-        /*
-        take the token at the position where we are reading and put it where we want to keep the
-        tokens. then move forward by 1
-        */
-            tokens[write_index++] = tokens[read_index++];//copy current token
-        }
-    }
-    return write_index;//return the new number of tokens after removing redirection tokens
-}
 /*######################################################################################*/
 int setup_redirection(const char *input_filename, const char *output_filename,
                       bool has_input_flag, bool has_output_flag) {
@@ -519,7 +217,55 @@ int execute_command(char *tokens[], const char *input_filename, const char *outp
         }
     }
 }
-/*end of io redirection*/
+/*end of part 5 */
+
+/* part 6 - io redirection*/
+/*######################################################################################*/
+void parse_redirection(char *tokens[], int num_tokens, char **input_filename, char **output_filename, bool *has_input_flag, bool *has_output_flag) {
+    // Initialize flags and filenames
+    *has_input_flag = false;
+    *has_output_flag = false;
+    *input_filename = NULL;
+    *output_filename = NULL;
+
+    // Iterate over tokens
+    for (int i = 0; i < num_tokens; i++) {
+        //if there is the sign for an input in the token
+        if (strcmp(tokens[i], "<") == 0) {
+            if (i + 1 < num_tokens) {//if there is a token after it
+                *input_filename = tokens[i + 1];//set the input file name to be the following token
+                *has_input_flag = true; //change the flag to true
+            }
+        //else if there is the sign for an output, do the same from input but for output
+        } else if (strcmp(tokens[i], ">") == 0) {
+            if (i + 1 < num_tokens) {
+                *output_filename = tokens[i + 1];
+                *has_output_flag = true;
+            }
+        }
+    }
+}
+
+/*######################################################################################*/
+int remove_redirection_tokens(char *tokens[], int num_tokens) {
+    int write_index = 0;//keeps trac o the position in the list where we put tokens we want to keep
+
+    for (int read_index = 0; read_index < num_tokens;) {//go through every token in the list
+        //check for redirection symbol
+        if (strcmp(tokens[read_index], "<") == 0 || strcmp(tokens[read_index], ">") == 0) {
+            read_index += 2; //skip the symbol and the file name
+        } else {
+        /*
+        take the token at the position where we are reading and put it where we want to keep the
+        tokens. then move forward by 1
+        */
+            tokens[write_index++] = tokens[read_index++];//copy current token
+        }
+    }
+    return write_index;//return the new number of tokens after removing redirection tokens
+}
+
+/* end of part 6 */
 
 /* part 7: piping */
 
@@ -570,7 +316,8 @@ int piping(char  **commands[], int num_commands)
 return 0;
 
 }
-/* end of piping */
+/* end of part 7 */
+
 /* part 8: background processing */
 
 int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
@@ -608,3 +355,257 @@ int run_in_background(char *tokens[], const char *input_filename, const char *ou
     }
 }
 /* End of part 8*/
+
+/* part 9: command history for exit */
+char *command_history[3] = {NULL, NULL, NULL};
+int history_count = 0;
+
+void add_to_history(char *command) {
+    if (command_history[0]) free(command_history[0]);
+    command_history[0] = command_history[1];
+    command_history[1] = command_history[2];
+    command_history[2] = strdup(command);
+    if (history_count < 3) history_count++;
+}
+/* end part 9 history */
+
+//LD added for testing - Part 8 job tracking
+typedef struct {
+    int job_number;
+    pid_t pid;
+    char *command;
+} BackgroundJob;
+
+BackgroundJob bg_jobs[10];
+int bg_job_count = 0;
+//LD end addition
+//LD added for testing - function declaration
+int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
+                      bool has_input_flag, bool has_output_flag, int job_number);
+//LD end addition
+
+int main()
+{
+    int job_count = 1;  // start background jobs from 1
+    while (1) {
+        printPrompt();
+
+        char *input = get_input();
+        char *nl = strchr(input, '\n');  // remove newline
+        if (nl) *nl = '\0';
+
+        tokenlist *tokens = get_tokens(input);
+        replace_env_tokens(tokens); // expand environment variables
+
+        // Check for background execution
+        bool is_background = false;
+        if (tokens->size > 0 && strcmp(tokens->items[tokens->size - 1], "&") == 0) {
+            is_background = true;
+            free(tokens->items[tokens->size - 1]);
+            tokens->items[tokens->size - 1] = NULL;
+            tokens->size--;
+        }
+
+        if (tokens->size == 0) {
+            free(input);
+            free_tokens(tokens);
+            continue;
+        }
+
+        // Add to history
+        add_to_history(input);
+
+        // Check for piping
+        int num_commands = 1;
+        for (int i = 0; i < tokens->size; i++) {
+            if (strcmp(tokens->items[i], "|") == 0)
+                num_commands++;
+        }
+
+        if (num_commands > 1) {
+            char **commands[3]; // hold up to 3 commands
+            int token_index = 0;
+
+            for (int i = 0; i < num_commands; i++) {
+                commands[i] = malloc((tokens->size + 1) * sizeof(char *));
+                int arg_index = 0;
+
+                while (token_index < tokens->size && strcmp(tokens->items[token_index], "|") != 0) {
+                    commands[i][arg_index++] = tokens->items[token_index];
+                    token_index++;
+                }
+                commands[i][arg_index] = NULL;
+
+                if (token_index < tokens->size && strcmp(tokens->items[token_index], "|") == 0)
+                    token_index++; // skip "|"
+            }
+
+            piping(commands, num_commands);
+
+            for (int i = 0; i < num_commands; i++)
+                free(commands[i]);
+        } else {
+            // Single command (no pipe)
+            if (strcmp(tokens->items[0], "exit") == 0) {
+                // Wait for background jobs
+                for (int i = 0; i < bg_job_count; i++) {
+                    if (bg_jobs[i].pid > 0) {
+                        waitpid(bg_jobs[i].pid, NULL, 0);
+                        free(bg_jobs[i].command);
+                    }
+                }
+
+                if (history_count == 0) {
+                    printf("No commands in history.\n");
+                } else {
+                    printf("Last %d command(s):\n", history_count);
+                    for (int i = 0; i < history_count; i++) {
+                        if (command_history[i])
+                            printf("%d: %s\n", i + 1, command_history[i]);
+                    }
+                }
+
+                for (int i = 0; i < 3; i++) {
+                    if (command_history[i]) free(command_history[i]);
+                }
+
+                free(input);
+                free_tokens(tokens);
+                exit(0);
+            }
+            else if (strcmp(tokens->items[0], "cd") == 0) {
+                char *dir = NULL;
+
+                if (tokens->size > 2) {
+                    fprintf(stderr, "cd: too many arguments\n");
+                    dir = NULL;
+                } else if (tokens->size == 1) {
+                    dir = getenv("HOME");
+                } else {
+                    dir = expand_tilde(tokens->items[1]);
+                }
+
+                if (dir) {
+                    if (chdir(dir) != 0) {
+                        perror("cd");
+                    } else {
+                        char cwd[4096];
+                        if (getcwd(cwd, sizeof(cwd)) != NULL)
+                            setenv("PWD", cwd, 1);
+                    }
+                }
+
+                if (tokens->size == 2 && dir != getenv("HOME")) free(dir);
+            }
+            else if (strcmp(tokens->items[0], "jobs") == 0) {
+                if (bg_job_count == 0) {
+                    printf("No active background jobs\n");
+                } else {
+                    for (int i = 0; i < bg_job_count; i++) {
+                        if (bg_jobs[i].pid > 0)
+                            printf("[%d]+ %d %s\n", bg_jobs[i].job_number, bg_jobs[i].pid, bg_jobs[i].command);
+                    }
+                }
+            }
+            else {
+                // Expand tilde
+                expand_tilde_in_tokens(tokens->items, tokens->size);
+
+                // Parse redirection
+                char *input_filename = NULL, *output_filename = NULL;
+                bool has_input_flag = false, has_output_flag = false;
+                parse_redirection(tokens->items, tokens->size,
+                                  &input_filename, &output_filename,
+                                  &has_input_flag, &has_output_flag);
+
+                // Remove redirection tokens
+                int new_size = remove_redirection_tokens(tokens->items, tokens->size);
+                tokens->items[new_size] = NULL; // NULL terminate for execv
+
+                // Execute command
+                if (new_size > 0) {
+                    if (is_background) {
+                        int pid = run_in_background(tokens->items, input_filename, output_filename,
+                                                    has_input_flag, has_output_flag, job_count);
+                        bg_jobs[bg_job_count].job_number = job_count++;
+                        bg_jobs[bg_job_count].pid = pid;
+                        bg_jobs[bg_job_count].command = strdup(input);
+                        bg_job_count++;
+                    } else {
+                        execute_command(tokens->items, input_filename, output_filename,
+                                        has_input_flag, has_output_flag);
+                    }
+                }
+            }
+        }
+
+        free(input);
+        free_tokens(tokens);
+    }
+
+    return 0;
+}
+
+
+tokenlist *new_tokenlist(void) {
+	tokenlist *tokens = (tokenlist *)malloc(sizeof(tokenlist));
+	tokens->size = 0;
+	tokens->items = (char **)malloc(sizeof(char *));
+	tokens->items[0] = NULL; /* make NULL terminated */
+	return tokens;
+}
+
+void add_token(tokenlist *tokens, char *item) {
+	int i = tokens->size;
+
+	tokens->items = (char **)realloc(tokens->items, (i + 2) * sizeof(char *));
+	tokens->items[i] = (char *)malloc(strlen(item) + 1);
+	tokens->items[i + 1] = NULL;
+	strcpy(tokens->items[i], item);
+
+	tokens->size += 1;
+}
+
+tokenlist *get_tokens(char *input) {
+	char *buf = (char *)malloc(strlen(input) + 1);
+	strcpy(buf, input);
+	tokenlist *tokens = new_tokenlist();
+	char *tok = strtok(buf, " ");
+	while (tok != NULL)
+	{
+		add_token(tokens, tok);
+		tok = strtok(NULL, " ");
+	}
+	free(buf);
+	return tokens;
+}
+
+void free_tokens(tokenlist *tokens) {
+	for (int i = 0; i < tokens->size; i++)
+		free(tokens->items[i]);
+	free(tokens->items);
+	free(tokens);
+}
+
+char *get_input(void) {
+	char *buffer = NULL;
+	int bufsize = 0;
+	char line[5];
+	while (fgets(line, 5, stdin) != NULL)
+	{
+		int addby = 0;
+		char *newln = strchr(line, '\n');
+		if (newln != NULL)
+			addby = newln - line;
+		else
+			addby = 5 - 1;
+		buffer = (char *)realloc(buffer, bufsize + addby + 1);
+		memcpy(&buffer[bufsize], line, addby);
+		bufsize += addby;
+		if (newln != NULL)
+			break;
+	}
+	buffer = (char *)realloc(buffer, bufsize + 1);
+	buffer[bufsize] = 0;
+	return buffer;
+}
