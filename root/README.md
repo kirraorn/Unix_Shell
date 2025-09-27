@@ -58,8 +58,6 @@ By following this approach of forking and executing the command within the child
 - **Assigned to**: [Members]
 
 ## File Listing
-
-
 ```
 ## How to Compile & Execute
 
@@ -94,6 +92,13 @@ Each member records their contributions here.
 | 2025-09-20 | added path search to main and fixed bugs with function |
 | 2025-09-22 | began development of piping function |
 | 2025-09-23 | uploaded piping function + main to lexer file |
+| 2025-09-24 | reorganized the main() function for better readbility|
+| 2025-09-25 | began full testing - started debugging execv bug related to $PATH |
+| 2025-09-26 | fixed execv bug with $PATH and tested piping function; fixed an issue with memory management in main |
+| 2025-09-27 | continued testing full shell implementation; reorganized the lexer.c file for better readability |
+
+
+
 
 ### Ludginie Dorval
 
@@ -119,12 +124,12 @@ Document in-person meetings, their purpose, and what was discussed.
 | Date       | Attendees            | Topics Discussed | Outcomes / Decisions |
 |------------|----------------------|------------------|-----------------------|
 | 2025-09-17 | Kirra, Kate, Ludginie            | How to combine our parts to fit together  | use lexer.c file as the main project file |
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
+| 2025-09-24 |  Kirra, Kate, Ludginie  | How to implement each other's parts in other's code; Any help/questions along with goals for completion and testing dates| work the bits of our own code into other's functions/main() function; project finished by saturday with testing on Saturday and Sunday  |
 
 
 ## Bugs
-- **Bug 1**: This is bug 1.
-- **Bug 2**: This is bug 2.
+- **Bug 1**: "execv: no file or directory" after every command ran in shell (FIXED)
+- **Bug 2**: double printing lines (FIXED)
 - **Bug 3**: This is bug 3.
 
 ## Extra Credit
@@ -133,5 +138,6 @@ Document in-person meetings, their purpose, and what was discussed.
 - **Extra Credit 3:**: [Extra Credit Option]
 
 ## Considerations
-[Description]
+- only a rudimentary version of the shell; some outputs will not be the exact same as the testing version from professor
+- user has correct input
 
