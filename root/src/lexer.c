@@ -85,6 +85,7 @@ char *findPath(char *command)
 
 int main()
 {
+	int job_count = 1;  // start background jobs from 1
 	while (1) {
 		printPrompt();
 
@@ -467,7 +468,7 @@ return 0;
 }
 /* end of piping */
 /* part 8: background processing */
-/* part 8: background processing */
+
 int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
                       bool has_input_flag, bool has_output_flag, int job_number) 
 {
