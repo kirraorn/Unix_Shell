@@ -75,6 +75,33 @@ char *findPath(char *command)
 }
 /* end of part 4: PATH SEARCH */
 
+/* part 9: command history for exit */
+char *command_history[3] = {NULL, NULL, NULL};
+int history_count = 0;
+
+void add_to_history(char *command) {
+    if (command_history[0]) free(command_history[0]);
+    command_history[0] = command_history[1];
+    command_history[1] = command_history[2];
+    command_history[2] = strdup(command);
+    if (history_count < 3) history_count++;
+}
+/* end part 9 history */
+
+//LD added for testing - Part 8 job tracking
+typedef struct {
+    int job_number;
+    pid_t pid;
+    char *command;
+} BackgroundJob;
+
+BackgroundJob bg_jobs[10];
+int bg_job_count = 0;
+//LD end addition
+//LD added for testing - function declaration
+int run_in_background(char *tokens[], const char *input_filename, const char *output_filename,
+                      bool has_input_flag, bool has_output_flag, int job_number);
+//LD end addition
 int main()
 {
 	int job_count = 1;  // start background jobs from 1
@@ -92,8 +119,23 @@ int main()
 			{ *nl = '\0'; }
 		
 		tokenlist *tokens = get_tokens(input);
+		replace_env_tokens(tokens); // part 2: expand environment variables
+		
+		//LD added for testing - check for background
+		bool is_background = false;
+		if (tokens->size > 0 && strcmp(tokens->items[tokens->size - 1], "&") == 0) {
+			is_background = true;
+			free(tokens->items[tokens->size - 1]);
+			tokens->items[tokens->size - 1] = NULL;
+			tokens->size--;
+		}
+		//LD end addition
+		
 		if (tokens->size > 0) // if user entered something
         {
+			// part 9: add to history
+			add_to_history(input);
+			
 			//check if there is a pipe
             int num_commands = 1;
             for (int i = 0; i < tokens->size; i++)
@@ -132,23 +174,96 @@ int main()
 /* part 5 */
                else // if not a pipe
 				{
-				 // Single command path
-                expand_tilde_in_tokens(tokens->items, tokens->size);
+				 /* PART 9: BUILT-IN COMMANDS */
+				 if (strcmp(tokens->items[0], "exit") == 0) {
+					 // Wait for background jobs
+					 //LD added for testing
+					 for (int i = 0; i < bg_job_count; i++) {
+						 if (bg_jobs[i].pid > 0) {
+							 waitpid(bg_jobs[i].pid, NULL, 0);
+							 free(bg_jobs[i].command);
+						 }
+					 }
+					 //LD end addition
+					 
+					 if (history_count == 0) {
+						 printf("No commands in history.\n");
+					 } else {
+						 printf("Last %d command(s):\n", history_count);
+						 for (int i = 0; i < history_count; i++) {
+							 if (command_history[i]) {
+								 printf("%d: %s\n", i+1, command_history[i]);
+							 }
+						 }
+					 }
+					 
+					 for (int i = 0; i < 3; i++) {
+						 if (command_history[i]) free(command_history[i]);
+					 }
+					 
+					 free(input);
+					 free_tokens(tokens);
+					 exit(0);
+				 }
+				 else if (strcmp(tokens->items[0], "cd") == 0) {
+					 if (tokens->size > 2) {
+						 fprintf(stderr, "cd: too many arguments\n");
+					 }
+					 else if (tokens->size == 1) {
+						 char *home = getenv("HOME");
+						 if (chdir(home) != 0) {
+							 perror("cd");
+						 }
+					 }
+					 else {
+						 if (chdir(tokens->items[1]) != 0) {
+							 perror("cd");
+						 }
+					 }
+				 }
+				 else if (strcmp(tokens->items[0], "jobs") == 0) {
+					 //LD added for testing
+					 if (bg_job_count == 0) {
+						 printf("No active background jobs\n");
+					 } else {
+						 for (int i = 0; i < bg_job_count; i++) {
+							 if (bg_jobs[i].pid > 0) {
+								 printf("[%d]+ %d %s\n", bg_jobs[i].job_number, bg_jobs[i].pid, bg_jobs[i].command);
+							 }
+						 }
+					 }
+					 //LD end addition
+				 }
+				 else {
+					 // Single command path
+					 expand_tilde_in_tokens(tokens->items, tokens->size);
 
-                // Parse redirection
-                char *input_filename, *output_filename;
-                bool has_input_flag, has_output_flag;
-                parse_redirection(tokens->items, tokens->size,
-                                  &input_filename, &output_filename,
-                                  &has_input_flag, &has_output_flag);
+					 // Parse redirection
+					 char *input_filename, *output_filename;
+					 bool has_input_flag, has_output_flag;
+					 parse_redirection(tokens->items, tokens->size,
+									   &input_filename, &output_filename,
+									   &has_input_flag, &has_output_flag);
 
-                // Remove redirection tokens
-                int new_size = remove_redirection_tokens(tokens->items, tokens->size);
+					 // Remove redirection tokens
+					 int new_size = remove_redirection_tokens(tokens->items, tokens->size);
+					 tokens->items[new_size] = NULL; // NULL terminate for execv
 
-                // Execute command
-                if (new_size > 0)
-                    execute_command(tokens->items, input_filename, output_filename,
-                                    has_input_flag, has_output_flag);
+					 // Execute command
+					 if (new_size > 0) {
+						 //LD added for testing - background check
+						 if (is_background) {
+							 int pid = run_in_background(tokens->items, input_filename, output_filename, has_input_flag, has_output_flag, job_count);
+							 bg_jobs[bg_job_count].job_number = job_count++;
+							 bg_jobs[bg_job_count].pid = pid;
+							 bg_jobs[bg_job_count].command = strdup(input);
+							 bg_job_count++;
+						 } else {
+							 execute_command(tokens->items, input_filename, output_filename, has_input_flag, has_output_flag);
+						 }
+						 //LD end addition
+					 }
+				 }
 				}
 		}
 		//end of adding
