@@ -269,54 +269,62 @@ int remove_redirection_tokens(char *tokens[], int num_tokens) {
 
 /* part 7: piping */
 
-int piping(char  **commands[], int num_commands)
-{
-        int pipefds[4]; // make enough for 2  pipes with ends
-        pid_t pids[3]; // store pids of the processes
+int piping(char ***commands, int num_commands) {
+    if (num_commands < 1) return -1;
 
-        if (num_commands > 1 && pipe(pipefds) == -1) //if not one pipe, fail
-        { printf("pipe not able to run\n"); return -1;}
+    int pipefds[2 * (num_commands - 1)]; // create enough fds for all pipes
+    pid_t pids[num_commands];
 
-        if (num_commands > 2  && pipe(pipefds + 2) == -1) // if not two pipes, fail
-        { printf("pipe unable to run\n"); return -1; }
+    // Create all pipes
+    for (int i = 0; i < num_commands - 1; i++) {
+        if (pipe(pipefds + 2*i) == -1) {
+            perror("pipe");
+            return -1;
+        }
+    }
 
-        for (int i = 0; i < num_commands; i++) //for each command...
-        {
-                if ((pids[i] = fork()) == 0) // if the pid matches the fork
-                {
-                        if (i == 0) // if its the firs command, redirect stout to end of pipe1
-                        { dup2(pipefds[1], STDOUT_FILENO); }
-                        else if (i == num_commands - 1)
-                        { dup2(pipefds[2*(i-1)], STDIN_FILENO); } // if last command, get read end of last pipe and add 
-                        else // if three commands, put the read end of the previous pipe to the write of the next
-                        {
-                                dup2(pipefds[2*(i-1)], STDIN_FILENO);
-                                dup2(pipefds[2*i+1], STDOUT_FILENO);
-                        }
-
-                        for (int j = 0; j < 2*(num_commands - 1); j++) // close the child pipes to make sure its not blocked
-                                close(pipefds[j]);
-
-						char *full_path = findPath(commands[i][0]);
-                		if (!full_path) { fprintf(stderr, "%s: command not found\n", commands[i][0]); exit(1); }
-
-             			execv(full_path, commands[i]);
-            			perror("execv failed");
-                		free(full_path);
-						exit(1);
-                }
+    for (int i = 0; i < num_commands; i++) {
+        pids[i] = fork();
+        if (pids[i] == -1) {
+            perror("fork");
+            return -1;
         }
 
-        for (int i = 0; i < 2*(num_commands -1); i++) // again, close the child pipes left
-                close(pipefds[i]);
+        if (pids[i] == 0) { // CHILD
+            // If not first command, redirect stdin to previous pipe
+            if (i > 0) {
+                dup2(pipefds[2*(i-1)], STDIN_FILENO);
+            }
+            // If not last command, redirect stdout to next pipe
+            if (i < num_commands - 1) {
+                dup2(pipefds[2*i + 1], STDOUT_FILENO);
+            }
 
-        for (int i = 0; i < num_commands; i ++) // make sure all parent processes wait to finish until children are done
-                waitpid(pids[i], NULL, 0);
+            // Close all pipe fds in child
+            for (int j = 0; j < 2*(num_commands - 1); j++) close(pipefds[j]);
 
-return 0;
+            // Use findPath to locate command
+            char *full_path = findPath(commands[i][0]);
+            if (!full_path) {
+                fprintf(stderr, "%s: command not found\n", commands[i][0]);
+                exit(1);
+            }
 
+            execv(full_path, commands[i]);
+            perror("execv failed");
+            free(full_path);
+            exit(1);
+        }
+    }
+
+    // Close all pipe fds in parent
+    for (int i = 0; i < 2*(num_commands - 1); i++) close(pipefds[i]);
+
+    // Wait for all children
+    for (int i = 0; i < num_commands; i++) waitpid(pids[i], NULL, 0);
+
+    return 0;
 }
-/* end of part 7 */
 
 /* part 8: background processing */
 
@@ -423,18 +431,36 @@ int main()
         }
 
         if (num_commands > 1) {
-            char **commands[3]; // hold up to 3 commands
+            char ***commands = malloc(num_commands * sizeof(char **)); // hold up to 3 commands
             int token_index = 0;
 
             for (int i = 0; i < num_commands; i++) {
-                commands[i] = malloc((tokens->size + 1) * sizeof(char *));
-                int arg_index = 0;
+                int start = token_index;
+                int arg_count = 0;
 
                 while (token_index < tokens->size && strcmp(tokens->items[token_index], "|") != 0) {
-                    commands[i][arg_index++] = tokens->items[token_index];
+                    arg_count++;
                     token_index++;
                 }
-                commands[i][arg_index] = NULL;
+                commands[i] = malloc((arg_count + 1) * sizeof(char *));
+                int k = 0;
+                for (int j = start; j < start + arg_count; j++)
+                {
+                    char *s = tokens->items[j];
+                    size_t len = strlen(s);
+
+                // Remove surrounding quotes
+                if (len >= 2 && s[0] == '"' && s[len-1] == '"') {
+                s[len-1] = '\0';
+                s++;
+                len -= 2;
+                }
+
+                // Remove trailing newline
+                if (len > 0 && s[len-1] == '\n') s[len-1] = '\0';
+                    commands[i][k++] = s;
+                }
+                commands[i][k] = NULL;
 
                 if (token_index < tokens->size && strcmp(tokens->items[token_index], "|") == 0)
                     token_index++; // skip "|"
@@ -444,6 +470,7 @@ int main()
 
             for (int i = 0; i < num_commands; i++)
                 free(commands[i]);
+            free(commands);
         } else {
             // Single command (no pipe)
             if (strcmp(tokens->items[0], "exit") == 0) {
@@ -609,3 +636,4 @@ char *get_input(void) {
 	buffer[bufsize] = 0;
 	return buffer;
 }
+
