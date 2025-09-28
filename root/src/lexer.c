@@ -272,7 +272,7 @@ int remove_redirection_tokens(char *tokens[], int num_tokens) {
 int piping(char ***commands, int num_commands) {
     if (num_commands < 1) return -1;
 
-    int pipefds[2 * (num_commands - 1)]; // create enough fds for all pipes
+    int pipefds[2 * (num_commands - 1)]; // create enough fds for all pipes - extra credit 
     pid_t pids[num_commands];
 
     // Create all pipes
@@ -283,7 +283,7 @@ int piping(char ***commands, int num_commands) {
         }
     }
 
-    for (int i = 0; i < num_commands; i++) {
+    for (int i = 0; i < num_commands; i++) { // start forking
         pids[i] = fork();
         if (pids[i] == -1) {
             perror("fork");
