@@ -46,7 +46,7 @@ By following this approach of forking and executing the command within the child
 - **Assigned to**: Kirra Orndorff
 
 ### Part 8: Background Processing
-- **Responsibilities**:
+- **Responsibilities**: The shell will be enhanced with background processing, allowing external commands to run concurrently without blocking new user input. This functionality integrates with I/O redirection and pipelines, tracks jobs with unique numbers, and provides feedback when jobs start and complete. By doing so, the shell can handle complex command sequences efficiently while periodically checking for finished processes.
 - **Assigned to** Kate Payen
 
 ### Part 9: Internal Command Execution
