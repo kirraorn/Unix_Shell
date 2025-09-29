@@ -53,10 +53,6 @@ By following this approach of forking and executing the command within the child
 - **Responsibilities**: 
 - **Assigned to** Ludginie Dorval
 
-### Extra Credit
-- **Responsibilities**: [Description]
-- **Assigned to**: [Members]
-
 ## File Listing
 ```
 ## How to Compile & Execute
@@ -140,8 +136,6 @@ Document in-person meetings, their purpose, and what was discussed.
 
 ## Extra Credit
 - **Extra Credit 1:**: Added Piping for any number of commands - Kirra Orndorff
-- **Extra Credit 2:**: [Extra Credit Option]
-- **Extra Credit 3:**: [Extra Credit Option]
 
 ## Considerations
 - only a rudimentary version of the shell; some outputs will not be the exact same as the testing version from professor
