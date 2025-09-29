@@ -134,10 +134,9 @@ Document in-person meetings, their purpose, and what was discussed.
 ## Bugs
 - **Bug 1**: "execv: no file or directory" after every command ran in shell (FIXED)
 - **Bug 2**: double printing lines (FIXED)
-- **Bug 3**: This is bug 3.
 
 ## Extra Credit
-- **Extra Credit 1:**: [Extra Credit Option]
+- **Extra Credit 1:**: Added Piping for any number of commands - Kirra Orndorff
 - **Extra Credit 2:**: [Extra Credit Option]
 - **Extra Credit 3:**: [Extra Credit Option]
 
