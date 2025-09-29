@@ -104,9 +104,15 @@ Each member records their contributions here.
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
+| 2025-09-DD | Created tilde_expansion.h header file with function declarations  |
+| 2025-09-DD | Implemented expand_tilde() function to handle ~ and ~/path expansion|
+| YYYY-MM-DD | Implemented complete I/O redirection functionality  |
+| YYYY-MM-DD | Integrated tilde expansion and I/O redirection functions into main() execution loop |
+| YYYY-MM-DD | Tested shell execution  |
+| YYYY-MM-DD | Implemented Part 9: built-in commands |
+| YYYY-MM-DD | Fixed Part 6 |
+| YYYY-MM-DD | Completed full shell testing  |
+
 
 
 ### Kate Payen
