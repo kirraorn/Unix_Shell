@@ -114,12 +114,15 @@ Each member records their contributions here.
 
 
 ### Kate Payen
-
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
+| 2025-09-15 | Began and finished Environment variables section  |
+| 2025-09- 19| [Began working on command execution]  |
+| 2025-09-24 | Finished and tested part 5 external command execution|
+| 2025-09-25 |Began working on Part 8 |
+| 2025-09-26 | Finished bacground processing |
+| 2025-09-27 | Fixed issue with background processing|
+| 2025-09-28 |Tested program with commands|
 
 
 ## Meetings
