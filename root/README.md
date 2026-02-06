@@ -1,13 +1,11 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/X2wXCC5u)
-
 Project 1: Shell
 
 The purpose of this project is to design and develop a comprehensive shell interface that enhances process control, user interaction, and error handling mechanism
 
 ## Group Members
-- Kirra Orndorff: kno22a@fsu.edu
-- Ludginie Dorval: lld22@fsu.edu
-- Kate Payen: kmp22i@fsu.edu
+- Kirra Orndorff 
+- Ludginie XXXX
+- Kate XXXX
 
 ## Division of Labor
 
@@ -96,35 +94,6 @@ Each member records their contributions here.
 | 2025-09-25 | began full testing - started debugging execv bug related to $PATH |
 | 2025-09-26 | fixed execv bug with $PATH and tested piping function; fixed an issue with memory management in main |
 | 2025-09-27 | continued testing full shell implementation; reorganized the lexer.c file for better readability |
-
-
-
-
-### Ludginie Dorval
-
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| 2025-09-16 | Created tilde_expansion.h header file with function declarations  |
-| 2025-09-17 | Implemented expand_tilde() function to handle ~ and ~/path expansion|
-| 2025-09-18| Implemented complete I/O redirection functionality  |
-|2025-09-19 | Integrated tilde expansion and I/O redirection functions into main() execution loop |
-| 2025-09-22 | Tested shell execution  |
-| 2025-09-25 | Implemented Part 9: built-in commands |
-| 2025-09-26 | Fixed Part 6 |
-|2025-09-28 | Completed full shell testing  |
-
-
-
-### Kate Payen
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| 2025-09-15 | Began and finished Environment variables section  |
-| 2025-09- 19| [Began working on command execution]  |
-| 2025-09-24 | Finished and tested part 5 external command execution|
-| 2025-09-25 |Began working on Part 8 |
-| 2025-09-26 | Finished bacground processing |
-| 2025-09-27 | Fixed issue with background processing|
-| 2025-09-28 |Tested program with commands|
 
 
 ## Meetings
